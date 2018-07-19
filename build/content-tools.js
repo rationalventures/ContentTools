@@ -5535,6 +5535,99 @@
 
   })(ContentEdit.Text);
 
+  ContentEdit.Visualization = (function(_super) {
+    __extends(Visualization, _super);
+
+    function Visualization(tagName, attributes, sources) {
+      var size;
+      if (sources == null) {
+        sources = [];
+      }
+      Visualization.__super__.constructor.call(this, tagName, attributes);
+      this.sources = sources;
+      size = this.size();
+      this._aspectRatio = size[1] / size[0];
+    }
+
+    Visualization.prototype.cssTypeName = function() {
+      return 'visualization';
+    };
+
+    Visualization.prototype.type = function() {
+      return 'Visualization';
+    };
+
+    Visualization.prototype.typeName = function() {
+      return 'Visualization';
+    };
+
+    Visualization.prototype._title = function() {
+      return "Visualization";
+    };
+
+    Visualization.prototype.createDraggingDOMElement = function() {
+      var helper;
+      if (!this.isMounted()) {
+        return;
+      }
+      helper = Visualization.__super__.createDraggingDOMElement.call(this);
+      helper.innerHTML = this._title();
+      return helper;
+    };
+
+    Visualization.prototype.html = function(indent) {
+      var le;
+      if (indent == null) {
+        indent = '';
+      }
+      le = ContentEdit.LINE_ENDINGS;
+      return ("" + indent + "<visualization" + (this._attributesToString()) + ">" + le) + "Visualization" + ("" + le + indent + "</visualization>");
+    };
+
+    Visualization.prototype.mount = function() {
+      var style;
+      this._domElement = document.createElement('visualization');
+      if (this.a && this.a['class']) {
+        this._domElement.setAttribute('class', this.a['class']);
+      } else if (this._attributes['class']) {
+        this._domElement.setAttribute('class', this._attributes['class']);
+      }
+      style = this._attributes['style'] ? this._attributes['style'] : '';
+      if (this._attributes['width']) {
+        style += "width:" + this._attributes['width'] + "px;";
+      }
+      if (this._attributes['height']) {
+        style += "height:" + this._attributes['height'] + "px;";
+      }
+      this._domElement.setAttribute('style', style);
+      this._domElement.setAttribute('data-ce-title', "Visualization");
+      return Visualization.__super__.mount.call(this);
+    };
+
+    Visualization.prototype.unmount = function() {
+      return Visualization.__super__.unmount.call(this);
+    };
+
+    Visualization.droppers = {
+      'Image': ContentEdit.Element._dropBoth,
+      'PreText': ContentEdit.Element._dropBoth,
+      'Static': ContentEdit.Element._dropBoth,
+      'Text': ContentEdit.Element._dropBoth,
+      'Visualization': ContentEdit.Element._dropBoth
+    };
+
+    Visualization.placements = ['above', 'below', 'left', 'right', 'center'];
+
+    Visualization.fromDOMElement = function(domElement) {
+      return new this(domElement.tagName, this.getDOMElementAttributes(domElement));
+    };
+
+    return Visualization;
+
+  })(ContentEdit.ResizableElement);
+
+  ContentEdit.TagNames.get().register(ContentEdit.Visualization, 'visualization');
+
 }).call(this);
 
 (function() {
@@ -5547,7 +5640,7 @@
   ContentTools = {
     Tools: {},
     CANCEL_MESSAGE: 'Your changes have not been saved, do you really want to lose them?'.trim(),
-    DEFAULT_TOOLS: [['bold', 'italic', 'link', 'align-left', 'align-center', 'align-right'], ['heading', 'subheading', 'paragraph', 'unordered-list', 'ordered-list', 'table', 'indent', 'unindent', 'line-break'], ['image', 'video', 'preformatted'], ['undo', 'redo', 'remove']],
+    DEFAULT_TOOLS: [['bold', 'italic', 'link', 'align-left', 'align-center', 'align-right'], ['heading', 'subheading', 'paragraph', 'unordered-list', 'ordered-list', 'table', 'indent', 'unindent', 'line-break'], ['video', 'preformatted', 'visualization'], ['undo', 'redo', 'remove']],
     DEFAULT_VIDEO_HEIGHT: 300,
     DEFAULT_VIDEO_WIDTH: 400,
     HIGHLIGHT_HOLD_DURATION: 2000,
@@ -10479,6 +10572,48 @@
     };
 
     return Image;
+
+  })(ContentTools.Tool);
+
+  ContentTools.Tools.Visualization = (function(_super) {
+    __extends(Visualization, _super);
+
+    function Visualization() {
+      return Visualization.__super__.constructor.apply(this, arguments);
+    }
+
+    ContentTools.ToolShelf.stow(Visualization, 'visualization');
+
+    Visualization.label = 'Visualization';
+
+    Visualization.icon = 'visualization';
+
+    Visualization.canApply = function(element, selection) {
+      return element.content;
+    };
+
+    Visualization.apply = function(element, selection, callback) {
+      var index, node, toolDetail, visualization, _ref;
+      toolDetail = {
+        'tool': this,
+        'element': element,
+        'selection': selection
+      };
+      if (!this.dispatchEditorEvent('tool-apply', toolDetail)) {
+        return;
+      }
+      visualization = new ContentEdit.Visualization('visualization', {
+        'height': 200,
+        'width': 300
+      });
+      _ref = this._insertAt(element), node = _ref[0], index = _ref[1];
+      node.parent().attach(visualization, index);
+      visualization.focus();
+      callback(true);
+      return this.dispatchEditorEvent('tool-applied', toolDetail);
+    };
+
+    return Visualization;
 
   })(ContentTools.Tool);
 

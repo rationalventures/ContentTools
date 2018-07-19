@@ -31,9 +31,9 @@ ContentTools =
             'unindent',
             'line-break'
         ], [
-            'image',
             'video',
-            'preformatted'
+            'preformatted',
+            'visualization'
         ], [
             'undo',
             'redo',

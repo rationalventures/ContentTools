@@ -1194,6 +1194,50 @@ class ContentTools.Tools.Image extends ContentTools.Tool
         dialog.show()
 
 
+class ContentTools.Tools.Visualization extends ContentTools.Tool
+
+    # Insert a Visualization.
+
+    ContentTools.ToolShelf.stow(@, 'visualization')
+
+    @label = 'Visualization'
+    @icon = 'visualization'
+
+    @canApply: (element, selection) ->
+        # Return true if the tool can be applied to the current
+        # element/selection.
+        return element.content
+
+    @apply: (element, selection, callback) ->
+        # Apply the tool to the current element
+
+        # Dispatch `apply` event
+        toolDetail = {
+            'tool': this,
+            'element': element,
+            'selection': selection
+        }
+        if not @dispatchEditorEvent('tool-apply', toolDetail)
+            return
+
+        visualization = new ContentEdit.Visualization(
+          'visualization', {
+              'height': 200,
+              'width': 300
+          })
+
+        # Find insert position
+        [node, index] = @_insertAt(element)
+        node.parent().attach(visualization, index)
+
+        # Focus the new Visualization
+        visualization.focus()
+
+        callback(true)
+
+        # Dispatch `applied` event
+        @dispatchEditorEvent('tool-applied', toolDetail)
+
 class ContentTools.Tools.Video extends ContentTools.Tool
 
     # Insert a video.
