@@ -33,7 +33,7 @@ ContentTools =
         ], [
             'video',
             'preformatted',
-            'visualization'
+            'visembed'
         ], [
             'undo',
             'redo',

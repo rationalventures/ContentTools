@@ -1194,14 +1194,14 @@ class ContentTools.Tools.Image extends ContentTools.Tool
         dialog.show()
 
 
-class ContentTools.Tools.Visualization extends ContentTools.Tool
+class ContentTools.Tools.Visembed extends ContentTools.Tool
 
     # Insert a Visualization.
 
-    ContentTools.ToolShelf.stow(@, 'visualization')
+    ContentTools.ToolShelf.stow(@, 'visembed')
 
     @label = 'Visualization'
-    @icon = 'visualization'
+    @icon = 'visembed'
 
     @canApply: (element, selection) ->
         # Return true if the tool can be applied to the current
@@ -1220,18 +1220,18 @@ class ContentTools.Tools.Visualization extends ContentTools.Tool
         if not @dispatchEditorEvent('tool-apply', toolDetail)
             return
 
-        visualization = new ContentEdit.Visualization(
-          'visualization', {
+        visembed = new ContentEdit.Visembed(
+          'visembed', {
               'height': 200,
               'width': 300
           })
 
         # Find insert position
         [node, index] = @_insertAt(element)
-        node.parent().attach(visualization, index)
+        node.parent().attach(visembed, index)
 
-        # Focus the new Visualization
-        visualization.focus()
+        # Focus the new Visembed
+        visembed.focus()
 
         callback(true)
 

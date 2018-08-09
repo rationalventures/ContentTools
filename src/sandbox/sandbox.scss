@@ -241,6 +241,8 @@ body {
 img,
 iframe,
 video,
+.visembed,
+
 .ce-element--type-image,
 .ce-element--type-video {
     clear: both;
@@ -252,13 +254,13 @@ video,
     &.align-left {
         clear: initial;
         float: left;
-        margin-right: 0.5em;
+        margin-right: 1em;
     }
 
     &.align-right {
         clear: initial;
         float: right;
-        margin-left: 0.5em;
+        margin-left: 1em;
     }
 }
 

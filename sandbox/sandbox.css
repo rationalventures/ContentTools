@@ -1,4 +1,4 @@
-/*! ContentTools v1.5.1 by Anthony Blackshaw <ant@getme.co.uk> (https://github.com/anthonyjb) */
+/*! ContentTools v1.6.5 by Anthony Blackshaw <ant@getme.co.uk> (https://github.com/anthonyjb) */
 @charset "UTF-8";
 /* Vendor */
 html {
@@ -399,8 +399,8 @@ body {
       .article__content {
         float: left;
         display: block;
-        margin-right: 2.35765%;
-        width: 65.88078%; }
+        margin-right: 2.3576515979%;
+        width: 65.8807828007%; }
         .article__content:last-child {
           margin-right: 0; } }
     .article__content h1 {
@@ -467,11 +467,11 @@ body {
     margin-top: 2em; }
     @media screen and (min-width: 720px) {
       .article__related {
-        margin-left: 8.5298%;
+        margin-left: 8.5298042998%;
         float: left;
         display: block;
-        margin-right: 2.35765%;
-        width: 23.23176%; }
+        margin-right: 2.3576515979%;
+        width: 23.2317613015%; }
         .article__related:last-child {
           margin-right: 0; } }
 
@@ -541,6 +541,7 @@ body {
 img,
 iframe,
 video,
+.visembed,
 .ce-element--type-image,
 .ce-element--type-video {
   clear: both;
@@ -551,6 +552,7 @@ video,
   img.align-left,
   iframe.align-left,
   video.align-left,
+  .visembed.align-left,
   .ce-element--type-image.align-left,
   .ce-element--type-video.align-left {
     clear: initial;
@@ -559,6 +561,7 @@ video,
   img.align-right,
   iframe.align-right,
   video.align-right,
+  .visembed.align-right,
   .ce-element--type-image.align-right,
   .ce-element--type-video.align-right {
     clear: initial;
