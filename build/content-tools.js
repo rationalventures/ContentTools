@@ -10626,8 +10626,8 @@
         return;
       }
       visembed = new ContentEdit.Visembed('visembed', {
-        'height': 200,
-        'width': 300
+        'height': 183,
+        'width': 382
       });
       _ref = this._insertAt(element), node = _ref[0], index = _ref[1];
       node.parent().attach(visembed, index);

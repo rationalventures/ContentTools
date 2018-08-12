@@ -1222,8 +1222,8 @@ class ContentTools.Tools.Visembed extends ContentTools.Tool
 
         visembed = new ContentEdit.Visembed(
           'visembed', {
-              'height': 200,
-              'width': 300
+              'height': 183,
+              'width': 382
           })
 
         # Find insert position
