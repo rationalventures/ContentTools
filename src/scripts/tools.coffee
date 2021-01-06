@@ -804,7 +804,7 @@ class ContentTools.Tools.Table extends ContentTools.Tool
         if element.isFixed()
             return false
 
-        return element != undefined
+        return window.rr.vue.$dashboard.type != 'dashboard' && element != undefined
 
     @apply: (element, selection, callback) ->
         # Dispatch `apply` event
@@ -1202,11 +1202,12 @@ class ContentTools.Tools.Visembed extends ContentTools.Tool
 
     @label = 'Visualization'
     @icon = 'visembed'
+    @requiresElement = false
 
     @canApply: (element, selection) ->
         # Return true if the tool can be applied to the current
         # element/selection.
-        return element.content
+        return window.rr.vue.$dashboard.type == 'dashboard' || element && not element.isFixed()
 
     @apply: (element, selection, callback) ->
         # Apply the tool to the current element
@@ -1217,13 +1218,23 @@ class ContentTools.Tools.Visembed extends ContentTools.Tool
             'element': element,
             'selection': selection
         }
+
+        # If this is the titlebar, don't add a new dom element. Add it to the dashboard instead.
+        if element && element.parent().domElement().hasAttribute("titlebar")
+            @dispatchEditorEvent('tool-to-apply', toolDetail)
+            return
+
         if not @dispatchEditorEvent('tool-apply', toolDetail)
+            return
+
+        if not element
+            @dispatchEditorEvent('tool-to-apply', toolDetail)
             return
 
         visembed = new ContentEdit.Visembed(
           'visembed', {
-              'height': 183,
-              'width': 382
+              'height': 180,
+              'width': 435
           })
 
         # Find insert position
@@ -1232,6 +1243,63 @@ class ContentTools.Tools.Visembed extends ContentTools.Tool
 
         # Focus the new Visembed
         visembed.focus()
+
+        callback(true)
+
+        # Dispatch `applied` event
+        @dispatchEditorEvent('tool-applied', toolDetail)
+
+class ContentTools.Tools.Datacell extends ContentTools.Tool
+
+    # Insert a Visualization.
+
+    ContentTools.ToolShelf.stow(@, 'datacell')
+
+    @label = 'Code'
+    @icon = 'preformatted'
+    @requiresElement = true
+
+    @canApply: (element, selection) ->
+        # Return true if the tool can be applied to the current
+        # element/selection.
+        #return not element.isFixed()
+        return window.rr.vue.$dashboard.type != 'dashboard' && not element.isFixed()
+        #return true
+
+    @apply: (element, selection, callback) ->
+        # Apply the tool to the current element
+
+        # Dispatch `apply` event
+        toolDetail = {
+            'tool': this,
+            'element': element,
+            'selection': selection
+        }
+
+        # If this is the titlebar, don't add a new dom element. Add it to the dashboard instead.
+        if element && element.parent().domElement().hasAttribute("titlebar")
+            @dispatchEditorEvent('tool-to-apply', toolDetail)
+            return
+
+        if not @dispatchEditorEvent('tool-apply', toolDetail)
+            return
+
+        if not element
+            @dispatchEditorEvent('tool-to-apply', toolDetail)
+            return
+
+        datacell = new ContentEdit.Datacell(
+          'datacell', {
+              'height': 130,
+              'width': 600
+          })
+
+        # Find insert position
+        [node, index] = @_insertAt(element)
+        node.parent().attach(datacell, index)
+
+        # Focus the new datacell
+        datacell.focus()
 
         callback(true)
 
@@ -1250,7 +1318,7 @@ class ContentTools.Tools.Video extends ContentTools.Tool
     @canApply: (element, selection) ->
         # Return true if the tool can be applied to the current
         # element/selection.
-        return not element.isFixed()
+        return window.rr.vue.$dashboard.type != 'dashboard' && not element.isFixed()
 
     @apply: (element, selection, callback) ->
 
@@ -1344,6 +1412,9 @@ class ContentTools.Tools.Undo extends ContentTools.Tool
     @canApply: (element, selection) ->
         # Return true if the tool can be applied to the current
         # element/selection.
+        if window.rr.vue.$dashboard.type == 'dashboard'
+            return window.rr.vue.$dashboard.hasUndo
+
         app = ContentTools.EditorApp.get()
         return app.history and app.history.canUndo()
 
@@ -1355,6 +1426,10 @@ class ContentTools.Tools.Undo extends ContentTools.Tool
             'selection': selection
             }
         if not @dispatchEditorEvent('tool-apply', toolDetail)
+            return
+
+        if window.rr.vue.$dashboard.type == 'dashboard'
+            @dispatchEditorEvent('tool-to-apply', toolDetail)
             return
 
         app = @editor()
@@ -1369,6 +1444,39 @@ class ContentTools.Tools.Undo extends ContentTools.Tool
         @dispatchEditorEvent('tool-applied', toolDetail)
 
 
+class ContentTools.Tools.Filter extends ContentTools.Tool
+
+    # Add a filter
+
+    ContentTools.ToolShelf.stow(@, 'filter')
+
+    @label = 'Filter'
+    @icon = 'filter'
+    @requiresElement = false
+
+    @canApply: (element, selection) ->
+    # Return true if the tool can be applied to the current
+    # element/selection.
+        return true
+
+    @apply: (element, selection, callback) ->
+    # Dispatch `apply` event
+        toolDetail = {
+            'tool': this,
+            'element': element,
+            'selection': selection
+        }
+
+        if not @dispatchEditorEvent('tool-apply', toolDetail)
+            return
+
+        app = @editor()
+
+        console.log("Filter tool applied!")
+
+        # Dispatch `applied` event
+        @dispatchEditorEvent('tool-applied', toolDetail)
+
 class ContentTools.Tools.Redo extends ContentTools.Tool
 
     # Redo an action.
@@ -1382,6 +1490,9 @@ class ContentTools.Tools.Redo extends ContentTools.Tool
     @canApply: (element, selection) ->
         # Return true if the tool can be applied to the current
         # element/selection.
+        if window.rr.vue.$dashboard.type == 'dashboard'
+            return window.rr.vue.$dashboard.hasRedo
+
         app = ContentTools.EditorApp.get()
         return app.history and app.history.canRedo()
 
@@ -1393,6 +1504,10 @@ class ContentTools.Tools.Redo extends ContentTools.Tool
             'selection': selection
             }
         if not @dispatchEditorEvent('tool-apply', toolDetail)
+            return
+
+        if window.rr.vue.$dashboard.type == 'dashboard'
+            @dispatchEditorEvent('tool-to-apply', toolDetail)
             return
 
         app = ContentTools.EditorApp.get()
@@ -1419,6 +1534,7 @@ class ContentTools.Tools.Remove extends ContentTools.Tool
     @canApply: (element, selection) ->
         # Return true if the tool can be applied to the current
         # element/selection.
+
         return not element.isFixed()
 
     @apply: (element, selection, callback) ->

@@ -2880,6 +2880,9 @@
       if (corner) {
         return this.resize(corner, ev.clientX, ev.clientY);
       } else {
+        if (ev.noContentMove) {
+          return;
+        }
         clearTimeout(this._dragTimeout);
         return this._dragTimeout = setTimeout((function(_this) {
           return function() {
@@ -4416,7 +4419,8 @@
       'PreText': ContentEdit.Element._dropBoth,
       'Static': ContentEdit.Element._dropBoth,
       'Text': ContentEdit.Element._dropBoth,
-      'Video': ContentEdit.Element._dropBoth
+      'Video': ContentEdit.Element._dropBoth,
+      'Visembed': ContentEdit.Element._dropBoth
     };
 
     Video.placements = ['above', 'below', 'left', 'right', 'center'];
@@ -4483,7 +4487,8 @@
       'PreText': ContentEdit.Element._dropVert,
       'Static': ContentEdit.Element._dropVert,
       'Text': ContentEdit.Element._dropVert,
-      'Video': ContentEdit.Element._dropBoth
+      'Video': ContentEdit.Element._dropBoth,
+      'Visembed': ContentEdit.Element._dropBoth
     };
 
     List.fromDOMElement = function(domElement) {
@@ -5047,7 +5052,8 @@
       'Static': ContentEdit.Element._dropVert,
       'Table': ContentEdit.Element._dropVert,
       'Text': ContentEdit.Element._dropVert,
-      'Video': ContentEdit.Element._dropBoth
+      'Video': ContentEdit.Element._dropBoth,
+      'Visembed': ContentEdit.Element._dropBoth
     };
 
     Table.fromDOMElement = function(domElement) {
@@ -5617,9 +5623,11 @@
       style = '';
       if (this._attributes['width']) {
         style += "width:" + this._attributes['width'] + "px;";
+        this._domElement.setAttribute('width', this._attributes['width']);
       }
       if (this._attributes['height']) {
         style += "height:" + this._attributes['height'] + "px;";
+        this._domElement.setAttribute('height', this._attributes['height']);
       }
       this._domElement.setAttribute('style', style);
       this._domElement.setAttribute('data-ce-title', "Visualization");
@@ -5636,13 +5644,15 @@
       'PreText': ContentEdit.Element._dropBoth,
       'Static': ContentEdit.Element._dropBoth,
       'Text': ContentEdit.Element._dropBoth,
-      'Visembed': ContentEdit.Element._dropBoth
+      'Visembed': ContentEdit.Element._dropVert
     };
 
     Visembed.placements = ['above', 'below', 'left', 'right', 'center'];
 
     Visembed.fromDOMElement = function(domElement) {
-      return new this(domElement.tagName, this.getDOMElementAttributes(domElement));
+      var attributes;
+      attributes = this.getDOMElementAttributes(domElement);
+      return new this(domElement.tagName, attributes);
     };
 
     return Visembed;
@@ -5650,6 +5660,104 @@
   })(ContentEdit.ResizableElement);
 
   ContentEdit.TagNames.get().register(ContentEdit.Visembed, 'visembed');
+
+  ContentEdit.Datacell = (function(_super) {
+    __extends(Datacell, _super);
+
+    function Datacell(tagName, attributes, sources) {
+      if (sources == null) {
+        sources = [];
+      }
+      Datacell.__super__.constructor.call(this, tagName, attributes);
+      this.sources = sources;
+    }
+
+    Datacell.prototype.cssTypeName = function() {
+      return 'datacell';
+    };
+
+    Datacell.prototype.type = function() {
+      return 'datacell';
+    };
+
+    Datacell.prototype.typeName = function() {
+      return 'Code Block';
+    };
+
+    Datacell.prototype._title = function() {
+      return "Code Block";
+    };
+
+    Datacell.prototype.createDraggingDOMElement = function() {
+      var helper;
+      if (!this.isMounted()) {
+        return;
+      }
+      helper = Datacell.__super__.createDraggingDOMElement.call(this);
+      helper.innerHTML = this._title();
+      return helper;
+    };
+
+    Datacell.prototype.html = function(indent) {
+      var html, le, style;
+      if (indent == null) {
+        indent = '';
+      }
+      le = ContentEdit.LINE_ENDINGS;
+      style = '';
+      if (this._attributes['style']) {
+        delete this._attributes['style'];
+      }
+      html = "" + indent + "<datacell  " + (this._attributesToString()) + " style=\"" + style + "\"><cell></cell></datacell>";
+      return html;
+    };
+
+    Datacell.prototype.mount = function() {
+      var style;
+      this._domElement = document.createElement('datacell');
+      if (this._attributes['class']) {
+        this._domElement.setAttribute('class', this._attributes['class']);
+      } else {
+        this._domElement.setAttribute('class', 'datacell');
+      }
+      if (!this._attributes['id']) {
+        this._attributes['id'] = "vis-" + performance.now().toString().replace('.', 7);
+      }
+      this._domElement.setAttribute('id', this._attributes['id']);
+      style = '';
+      this._domElement.setAttribute('style', style);
+      this._domElement.setAttribute('data-ce-title', "Code Block");
+      this._domElement.appendChild(document.createElement('cell'));
+      return Datacell.__super__.mount.call(this);
+    };
+
+    Datacell.prototype.unmount = function() {
+      return Datacell.__super__.unmount.call(this);
+    };
+
+    Datacell.droppers = {
+      'Image': ContentEdit.Element._dropBoth,
+      'ImageFixture': ContentEdit.Element._dropVert,
+      'List': ContentEdit.Element._dropVert,
+      'PreText': ContentEdit.Element._dropVert,
+      'Static': ContentEdit.Element._dropVert,
+      'Table': ContentEdit.Element._dropVert,
+      'Text': ContentEdit.Element._dropVert,
+      'Video': ContentEdit.Element._dropVert,
+      'Visembed': ContentEdit.Element._dropVert
+    };
+
+    Datacell.placements = ['above', 'below', 'left', 'right', 'center'];
+
+    Datacell.fromDOMElement = function(domElement) {
+      return new this(domElement.tagName, this.getDOMElementAttributes(domElement));
+    };
+
+    return Datacell;
+
+  })(ContentEdit.Element);
+
+  ContentEdit.TagNames.get().register(ContentEdit.Datacell, 'datacell');
 
 }).call(this);
 
@@ -5663,7 +5771,7 @@
   ContentTools = {
     Tools: {},
     CANCEL_MESSAGE: 'Your changes have not been saved, do you really want to lose them?'.trim(),
-    DEFAULT_TOOLS: [['bold', 'italic', 'link', 'align-left', 'align-center', 'align-right'], ['heading', 'subheading', 'paragraph', 'unordered-list', 'ordered-list', 'table', 'indent', 'unindent', 'line-break'], ['video', 'preformatted', 'visembed'], ['undo', 'redo', 'remove']],
+    DEFAULT_TOOLS: [['bold', 'italic', 'link', 'align-left', 'align-center', 'align-right'], ['heading', 'subheading', 'paragraph', 'unordered-list', 'ordered-list', 'table', 'indent', 'unindent', 'line-break'], ['video', 'datacell', 'visembed'], ['undo', 'redo', 'remove']],
     DEFAULT_VIDEO_HEIGHT: 300,
     DEFAULT_VIDEO_WIDTH: 400,
     HIGHLIGHT_HOLD_DURATION: 2000,
@@ -6525,17 +6633,17 @@
 
     ToolboxUI.prototype.mount = function() {
       var coord, position, restore;
-      this._domElement = this.constructor.createDiv(['ct-widget', 'ct-toolbox']);
+      this._domElement = this.constructor.createDiv(['ct-widget', 'ct-toolbox', 'ct-rv-toolbox']);
       this.parent().domElement().appendChild(this._domElement);
-      this._domGrip = this.constructor.createDiv(['ct-toolbox__grip', 'ct-grip']);
+      this._domGrip = this.constructor.createDiv(['ct-toolbox__grip', 'ct-grip', 'ct-rv-grip']);
       this._domElement.appendChild(this._domGrip);
-      this._domGrip.appendChild(this.constructor.createDiv(['ct-grip__bump']));
-      this._domGrip.appendChild(this.constructor.createDiv(['ct-grip__bump']));
-      this._domGrip.appendChild(this.constructor.createDiv(['ct-grip__bump']));
+      this._domGrip.appendChild(this.constructor.createDiv(['ct-rv-logo']));
       this._domToolGroups = this.constructor.createDiv(['ct-tool-groups']);
       this._domElement.appendChild(this._domToolGroups);
       this.tools(this._tools);
-      restore = window.localStorage.getItem('ct-toolbox-position');
+      this._domElement.style.left = "20px";
+      this._domElement.style.top = "calc(var(--scroll-y-pos) + 20px)";
+      restore = null;
       if (restore && /^\d+,\d+$/.test(restore)) {
         position = (function() {
           var _i, _len, _ref, _results;
@@ -6548,7 +6656,7 @@
           return _results;
         })();
         this._domElement.style.left = "" + position[0] + "px";
-        this._domElement.style.top = "" + position[1] + "px";
+        this._domElement.style.top = "calc(var(--scroll-y-pos) + " + position[1] + "px)";
         this._contain();
       }
       return this._addDOMEventListeners();
@@ -6760,8 +6868,7 @@
       if (rect.top < 0) {
         this._domElement.style.top = '0px';
       }
-      rect = this._domElement.getBoundingClientRect();
-      return window.localStorage.setItem('ct-toolbox-position', "" + rect.left + "," + rect.top);
+      return rect = this._domElement.getBoundingClientRect();
     };
 
     ToolboxUI.prototype._removeDOMEventListeners = function() {
@@ -6776,21 +6883,24 @@
     ToolboxUI.prototype._onDrag = function(ev) {
       ContentSelect.Range.unselectAll();
       this._domElement.style.left = "" + (ev.clientX - this._draggingOffset.x) + "px";
-      return this._domElement.style.top = "" + (ev.clientY - this._draggingOffset.y) + "px";
+      return this._domElement.style.top = "calc(var(--scroll-y-pos) + " + (ev.clientY - this._draggingOffset.y) + "px)";
     };
 
     ToolboxUI.prototype._onStartDragging = function(ev) {
-      var rect;
+      var len, offset, rect;
       ev.preventDefault();
       if (this.isDragging()) {
         return;
       }
       this._dragging = true;
       this.addCSSClass('ct-toolbox--dragging');
+      offset = getComputedStyle(document.body).getPropertyValue('--scroll-y-pos');
+      len = offset.length;
+      offset = parseInt(offset.substring(0, len - 2));
       rect = this._domElement.getBoundingClientRect();
       this._draggingOffset = {
         x: ev.clientX - rect.left,
-        y: ev.clientY - rect.top
+        y: ev.clientY - (rect.top - offset)
       };
       document.addEventListener('mousemove', this._onDrag);
       document.addEventListener('mouseup', this._onStopDragging);
@@ -10234,7 +10344,7 @@
       if (element.isFixed()) {
         return false;
       }
-      return element !== void 0;
+      return window.rr.vue.$dashboard.type !== 'dashboard' && element !== void 0;
     };
 
     Table.apply = function(element, selection, callback) {
@@ -10611,8 +10721,10 @@
 
     Visembed.icon = 'visembed';
 
+    Visembed.requiresElement = false;
+
     Visembed.canApply = function(element, selection) {
-      return element.content;
+      return window.rr.vue.$dashboard.type === 'dashboard' || element && !element.isFixed();
     };
 
     Visembed.apply = function(element, selection, callback) {
@@ -10622,12 +10734,20 @@
         'element': element,
         'selection': selection
       };
+      if (element && element.parent().domElement().hasAttribute("titlebar")) {
+        this.dispatchEditorEvent('tool-to-apply', toolDetail);
+        return;
+      }
       if (!this.dispatchEditorEvent('tool-apply', toolDetail)) {
         return;
       }
+      if (!element) {
+        this.dispatchEditorEvent('tool-to-apply', toolDetail);
+        return;
+      }
       visembed = new ContentEdit.Visembed('visembed', {
-        'height': 183,
-        'width': 382
+        'height': 180,
+        'width': 435
       });
       _ref = this._insertAt(element), node = _ref[0], index = _ref[1];
       node.parent().attach(visembed, index);
@@ -10637,6 +10757,58 @@
     };
 
     return Visembed;
+
+  })(ContentTools.Tool);
+
+  ContentTools.Tools.Datacell = (function(_super) {
+    __extends(Datacell, _super);
+
+    function Datacell() {
+      return Datacell.__super__.constructor.apply(this, arguments);
+    }
+
+    ContentTools.ToolShelf.stow(Datacell, 'datacell');
+
+    Datacell.label = 'Code';
+
+    Datacell.icon = 'preformatted';
+
+    Datacell.requiresElement = true;
+
+    Datacell.canApply = function(element, selection) {
+      return window.rr.vue.$dashboard.type !== 'dashboard' && !element.isFixed();
+    };
+
+    Datacell.apply = function(element, selection, callback) {
+      var datacell, index, node, toolDetail, _ref;
+      toolDetail = {
+        'tool': this,
+        'element': element,
+        'selection': selection
+      };
+      if (element && element.parent().domElement().hasAttribute("titlebar")) {
+        this.dispatchEditorEvent('tool-to-apply', toolDetail);
+        return;
+      }
+      if (!this.dispatchEditorEvent('tool-apply', toolDetail)) {
+        return;
+      }
+      if (!element) {
+        this.dispatchEditorEvent('tool-to-apply', toolDetail);
+        return;
+      }
+      datacell = new ContentEdit.Datacell('datacell', {
+        'height': 130,
+        'width': 600
+      });
+      _ref = this._insertAt(element), node = _ref[0], index = _ref[1];
+      node.parent().attach(datacell, index);
+      datacell.focus();
+      callback(true);
+      return this.dispatchEditorEvent('tool-applied', toolDetail);
+    };
+
+    return Datacell;
 
   })(ContentTools.Tool);
 
@@ -10654,7 +10826,7 @@
     Video.icon = 'video';
 
     Video.canApply = function(element, selection) {
-      return !element.isFixed();
+      return window.rr.vue.$dashboard.type !== 'dashboard' && !element.isFixed();
     };
 
     Video.apply = function(element, selection, callback) {
@@ -10738,6 +10910,9 @@
 
     Undo.canApply = function(element, selection) {
       var app;
+      if (window.rr.vue.$dashboard.type === 'dashboard') {
+        return window.rr.vue.$dashboard.hasUndo;
+      }
       app = ContentTools.EditorApp.get();
       return app.history && app.history.canUndo();
     };
@@ -10752,6 +10927,10 @@
       if (!this.dispatchEditorEvent('tool-apply', toolDetail)) {
         return;
       }
+      if (window.rr.vue.$dashboard.type === 'dashboard') {
+        this.dispatchEditorEvent('tool-to-apply', toolDetail);
+        return;
+      }
       app = this.editor();
       app.history.stopWatching();
       snapshot = app.history.undo();
@@ -10761,6 +10940,44 @@
     };
 
     return Undo;
+
+  })(ContentTools.Tool);
+
+  ContentTools.Tools.Filter = (function(_super) {
+    __extends(Filter, _super);
+
+    function Filter() {
+      return Filter.__super__.constructor.apply(this, arguments);
+    }
+
+    ContentTools.ToolShelf.stow(Filter, 'filter');
+
+    Filter.label = 'Filter';
+
+    Filter.icon = 'filter';
+
+    Filter.requiresElement = false;
+
+    Filter.canApply = function(element, selection) {
+      return true;
+    };
+
+    Filter.apply = function(element, selection, callback) {
+      var app, toolDetail;
+      toolDetail = {
+        'tool': this,
+        'element': element,
+        'selection': selection
+      };
+      if (!this.dispatchEditorEvent('tool-apply', toolDetail)) {
+        return;
+      }
+      app = this.editor();
+      console.log("Filter tool applied!");
+      return this.dispatchEditorEvent('tool-applied', toolDetail);
+    };
+
+    return Filter;
 
   })(ContentTools.Tool);
 
@@ -10781,6 +10998,9 @@
 
     Redo.canApply = function(element, selection) {
       var app;
+      if (window.rr.vue.$dashboard.type === 'dashboard') {
+        return window.rr.vue.$dashboard.hasRedo;
+      }
       app = ContentTools.EditorApp.get();
       return app.history && app.history.canRedo();
     };
@@ -10793,6 +11013,10 @@
         'selection': selection
       };
       if (!this.dispatchEditorEvent('tool-apply', toolDetail)) {
+        return;
+      }
+      if (window.rr.vue.$dashboard.type === 'dashboard') {
+        this.dispatchEditorEvent('tool-to-apply', toolDetail);
         return;
       }
       app = ContentTools.EditorApp.get();

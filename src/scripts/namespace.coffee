@@ -32,7 +32,7 @@ ContentTools =
             'line-break'
         ], [
             'video',
-            'preformatted',
+            'datacell',
             'visembed'
         ], [
             'undo',

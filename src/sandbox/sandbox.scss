@@ -210,8 +210,8 @@ body {
     // Modify editing styles to cater for the background color
     .ce-element--focused,
     .ce-element--over {
-        background-color: rgba(white, 0.2);
-        outline-color: rgba(white, 0.2) !important;
+        background-color: rgb(238, 240, 242);
+        outline-color: rgb(238, 240, 242) !important;
         z-index: initial;
     }
 }
@@ -242,6 +242,7 @@ img,
 iframe,
 video,
 .visembed,
+.datacell,
 
 .ce-element--type-image,
 .ce-element--type-video {

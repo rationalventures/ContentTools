@@ -182,6 +182,12 @@
         &--video:before          { content: "\ea98"; }
         &--visembed:before       { content: "\e99a"; font-family: rvicons;}
         &--undo:before           { content: "\e965"; }
+
+        &--filter:before {
+            content: "\ea5b";
+            font-family: rvicons;
+        }
+
         &--redo:before           { content: "\e966"; }
         &--remove:before         { content: "\e9ac"; }
 

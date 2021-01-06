@@ -57,32 +57,37 @@ class ContentTools.ToolboxUI extends ContentTools.WidgetUI
         # Toolbox
         @_domElement = @constructor.createDiv([
             'ct-widget',
-            'ct-toolbox'
+            'ct-toolbox',
+            'ct-rv-toolbox'
             ])
         @parent().domElement().appendChild(@_domElement)
 
         # Grip
         @_domGrip = @constructor.createDiv([
             'ct-toolbox__grip',
-            'ct-grip'
+            'ct-grip',
+            'ct-rv-grip'
             ])
         @_domElement.appendChild(@_domGrip)
 
-        @_domGrip.appendChild(@constructor.createDiv(['ct-grip__bump']))
-        @_domGrip.appendChild(@constructor.createDiv(['ct-grip__bump']))
-        @_domGrip.appendChild(@constructor.createDiv(['ct-grip__bump']))
+        @_domGrip.appendChild(@constructor.createDiv(['ct-rv-logo']))
+     #   @_domGrip.appendChild(@constructor.createDiv(['ct-grip__bump']))
+     #   @_domGrip.appendChild(@constructor.createDiv(['ct-grip__bump']))
 
         # Tools
         @_domToolGroups = @constructor.createDiv(['ct-tool-groups'])
         @_domElement.appendChild(@_domToolGroups)
         @tools(@_tools)
 
+        @_domElement.style.left = "20px"
+        @_domElement.style.top = "calc(var(--scroll-y-pos) + 20px)"
+
         # Restore the position of the element (if there's a restore set)
-        restore = window.localStorage.getItem('ct-toolbox-position')
+        restore = null # window.localStorage.getItem('ct-toolbox-position')
         if restore and /^\d+,\d+$/.test(restore)
             position = (parseInt(coord) for coord in restore.split(','))
             @_domElement.style.left = "#{ position[0] }px"
-            @_domElement.style.top = "#{ position[1] }px"
+            @_domElement.style.top = "calc(var(--scroll-y-pos) + #{ position[1] }px)" # "#{ position[1] }px"
 
             # After restoring the position make sure the toolbox is still
             # visible in the window.
@@ -325,10 +330,10 @@ class ContentTools.ToolboxUI extends ContentTools.WidgetUI
         # Save the new position to local storage so we can restore it on
         # remount.
         rect = @_domElement.getBoundingClientRect()
-        window.localStorage.setItem(
-            'ct-toolbox-position',
-            "#{ rect.left },#{ rect.top }"
-            )
+        #window.localStorage.setItem(
+        #    'ct-toolbox-position',
+        #    "#{ rect.left },#{ rect.top }"
+        #    )
 
     _removeDOMEventListeners: () ->
         # Remove DOM event listeners for the widget
@@ -356,7 +361,7 @@ class ContentTools.ToolboxUI extends ContentTools.WidgetUI
 
         # Reposition the toolbox
         @_domElement.style.left = "#{ ev.clientX - @_draggingOffset.x }px"
-        @_domElement.style.top = "#{ ev.clientY - @_draggingOffset.y }px"
+        @_domElement.style.top = "calc(var(--scroll-y-pos) + #{ ev.clientY - @_draggingOffset.y }px)" #"#{ ev.clientY - @_draggingOffset.y }px"
 
     _onStartDragging: (ev) =>
         # Start dragging the toolbox
@@ -369,11 +374,16 @@ class ContentTools.ToolboxUI extends ContentTools.WidgetUI
         @_dragging = true
         @addCSSClass('ct-toolbox--dragging')
 
+        # RATIONAL BI - Handle scrolling iframe
+        offset = getComputedStyle(document.body).getPropertyValue('--scroll-y-pos')
+        len = offset.length
+        offset = parseInt(offset.substring(0, len - 2))
+
         # Calculate the offset of the cursor to the toolbox
         rect = @_domElement.getBoundingClientRect()
         @_draggingOffset = {
             x: ev.clientX - rect.left,
-            y: ev.clientY - rect.top
+            y: ev.clientY - (rect.top - offset)
             }
 
         # Setup dragging behaviour for the element
