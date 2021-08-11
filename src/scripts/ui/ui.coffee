@@ -244,7 +244,7 @@ class ContentTools.WidgetUI extends ContentTools.ComponentUI
 
             # If there's no support for `getComputedStyle` then we fallback to
             # unmounting the widget immediately.
-            unless window.getComputedStyle
+            unless window.getComputedStyle and @_domElement
                 @unmount()
                 return
 

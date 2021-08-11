@@ -6126,7 +6126,7 @@
       monitorForHidden = (function(_this) {
         return function() {
           _this._hideTimeout = null;
-          if (!window.getComputedStyle) {
+          if (!(window.getComputedStyle && _this._domElement)) {
             _this.unmount();
             return;
           }
